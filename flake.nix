@@ -74,6 +74,9 @@
         # Desktop targets only, never the headless devbox profile.
         guiPackages = with pkgs; [
           localsend
+          # CLI, but it configures a key plugged into this machine, so it
+          # belongs with the desktops rather than in basePackages.
+          yubikey-manager
         ];
 
         darwinPackages = with pkgs; [
