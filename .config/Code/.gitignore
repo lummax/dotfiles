@@ -1,0 +1,10 @@
+# ~/.config/Code is a stow symlink into this repo, so VS Code writes all of
+# its runtime state here: caches, logs, machine id, workspace storage.
+# Allowlist the configuration instead of chasing each new artefact.
+/*
+!/.gitignore
+!/User/
+/User/*
+!/User/settings.json
+!/User/keybindings.json
+!/User/snippets/

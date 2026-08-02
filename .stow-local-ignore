@@ -3,6 +3,7 @@ macos
 cosmic
 
 install.sh
+upgrade.sh
 flake.nix
 flake.lock
 

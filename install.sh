@@ -166,6 +166,20 @@ setup_nvim() {
     nvim --headless "+Lazy! restore" +qa
 }
 
+# The themes settings.json names are contributed by extensions, so without
+# these VS Code silently falls back to its defaults.
+setup_vscode() {
+    command -v code >/dev/null 2>&1 || return 0
+
+    local installed
+    installed="$(code --list-extensions 2>/dev/null)" || return 0
+
+    local ext
+    for ext in Catppuccin.catppuccin-vsc Catppuccin.catppuccin-vsc-icons; do
+        grep -qix -- "$ext" <<<"$installed" || code --install-extension "$ext"
+    done
+}
+
 setup_fonts() {
     local target="$1"
     case "$target" in
@@ -190,6 +204,7 @@ main() {
     setup_shell "$target"
     stow_dotfiles "$target"
     setup_nvim
+    setup_vscode
     setup_fonts "$target"
 }
 
