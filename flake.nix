@@ -50,7 +50,7 @@
           prek
           timewarrior
 
-          python3.10
+          python3
 
           # No `nix` here: the Determinate installer provides it on every
           # target, and this would shadow it with an older nixpkgs build.
