@@ -1,7 +1,7 @@
 {
     "window.commandCenter": true,
     "git.autofetch": true,
-    "workbench.iconTheme": "catppuccin-macchiato",
+    "workbench.iconTheme": "catppuccin-mocha",
     "vim.leader": " ",
     "vim.vimrc.enable": true,
     "vim.vimrc.path": "~/.vscodevimrc",
@@ -27,6 +27,6 @@
     "bazel.enableCodeLens": true,
     "remote.autoForwardPortsSource": "hybrid",
     "terminal.integrated.fontSize": 15,
-    "workbench.colorTheme": "Catppuccin Macchiato",
+    "workbench.colorTheme": "Catppuccin Mocha",
     //"dotfiles.repository": "https://github.com/lummax/dotfiles.git",
 }
