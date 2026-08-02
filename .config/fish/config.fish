@@ -1,11 +1,8 @@
 set -gx EDITOR nvim
 
-# Fish plugins come from nixpkgs (see flake.nix), not fisher - that avoids
-# piping a bootstrap script into a shell, and keeps plugin files out of this
-# repo entirely. Nix drops them under the profile's share/fish/vendor_*.d;
-# point fish at those explicitly rather than relying on XDG_DATA_DIRS, which
-# is only set for systemd user sessions (see .config/environment.d) and so
-# would not apply over SSH or inside a container.
+# Plugins come from nixpkgs, not fisher. Point fish at the profile's vendor
+# dirs explicitly: XDG_DATA_DIRS is only set for systemd user sessions, so it
+# would not cover SSH or containers.
 set -l nix_fish ~/.nix-profile/share/fish
 set -p fish_function_path $nix_fish/vendor_functions.d
 set -p fish_complete_path $nix_fish/vendor_completions.d
@@ -17,11 +14,8 @@ end
 
 set -g fish_greeting ""
 
-# Catppuccin Mocha, inlined as globals rather than kept as universal
-# variables in fish_variables (which fish rewrites at runtime, and which is
-# therefore gitignored). There is no catppuccin fish theme in nixpkgs, and
-# `fish_config theme` only searches ~/.config/fish/themes anyway, so the
-# colours live here directly - no plugin, no fetch, works everywhere.
+# Catppuccin Mocha as globals: fish_variables is runtime state and gitignored,
+# and there is no catppuccin fish theme in nixpkgs.
 set -g fish_color_autosuggestion 6c7086
 set -g fish_color_cancel f38ba8
 set -g fish_color_command 89b4fa
@@ -54,6 +48,10 @@ set -g fish_pager_color_progress 6c7086
 
 fish_add_path ~/.local/bin/
 fish_add_path ~/.nix-profile/bin/
+# nix lives in the default profile; its /etc/profile.d snippet is POSIX-only,
+# so fish never sees it. Appended, so ~/.nix-profile keeps priority.
+fish_add_path --append /nix/var/nix/profiles/default/bin
+set -gx NIX_PROFILES "/nix/var/nix/profiles/default $HOME/.nix-profile"
 
 direnv hook fish | source
 zoxide init fish --cmd cd | source

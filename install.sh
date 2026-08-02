@@ -9,8 +9,7 @@ else
     SUDO="sudo"
 fi
 
-# ID plus ID_LIKE from /etc/os-release, space-padded for substring matching.
-# Read in a subshell so the sourced variables do not leak into the script.
+# Space-padded so the case arms below can match whole words.
 os_release_ids() {
     [[ -r /etc/os-release ]] || return 1
     ( . /etc/os-release && echo " ${ID:-} ${ID_LIKE:-} " )
@@ -27,8 +26,7 @@ detect_target() {
         return
     fi
 
-    # Silverblue before plain Fedora: both report ID=fedora, only the
-    # atomic COSMIC variant should get the cosmic/ overlay.
+    # Before plain fedora: both report ID=fedora.
     if [[ -r /etc/os-release ]] && grep -q '^VARIANT_ID=cosmic-atomic' /etc/os-release; then
         echo fedora-silverblue
         return
@@ -47,9 +45,6 @@ detect_target() {
         ;;
     esac
 
-    # Deliberately no generic Linux fallback: each target differs in
-    # package manager and in whether GUI apps belong there, so guessing
-    # is worse than saying so.
     echo "Unsupported system (OSTYPE=$OSTYPE, os-release ids:$ids)" >&2
     exit 1
 }
@@ -58,18 +53,12 @@ bootstrap() {
     local target="$1"
     case "$target" in
     devcontainer | debian)
-        # No fontconfig on either: containers have no desktop, and the
-        # debian target is a headless devbox whose fonts render on
-        # whatever client you SSH in from.
         if command -v apt-get >/dev/null 2>&1; then
             $SUDO apt-get update && $SUDO apt-get install --yes git curl
         fi
         ;;
     fedora-silverblue | fedora)
-        # git/curl/fontconfig already ship in the Fedora base images.
-        # rpm-ostree layering needs a reboot to take effect, so only reach
-        # for it if something is genuinely missing, rather than doing it
-        # unconditionally on every run.
+        # Layering would need a reboot, so ask rather than do it.
         for bin in git curl fc-cache; do
             if ! command -v "$bin" >/dev/null 2>&1; then
                 echo "Missing $bin: install it (rpm-ostree install <pkg> + reboot on atomic), then re-run." >&2
@@ -80,22 +69,31 @@ bootstrap() {
     esac
 }
 
+NIX_PROFILE_SCRIPT=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
+load_nix() {
+    [[ -r "$NIX_PROFILE_SCRIPT" ]] || return 0
+    set +u
+    # shellcheck disable=SC1090
+    . "$NIX_PROFILE_SCRIPT"
+    set -u
+}
+
 install_nix() {
     local target="$1"
+
+    # Load first: this is a non-login shell, so /etc/profile.d is never
+    # sourced and an existing nix would look absent and be reinstalled.
+    load_nix
     if command -v nix >/dev/null 2>&1; then
         return
     fi
 
-    # The Determinate Systems installer is the only script this repo pipes
-    # into a shell. Everything else comes from a package manager.
     local installer=https://install.determinate.systems/nix
 
     if [[ "$target" == "devcontainer" ]]; then
-        # No systemd in most devcontainers, so there is no init system to
-        # supervise a daemon: `linux --init none`. Sandboxing needs user
-        # namespaces that containers commonly restrict, hence sandbox=false.
-        # Caveat: with --init none only root (or users who can sudo) can run
-        # nix.
+        # No systemd to supervise a daemon, and sandboxing needs user
+        # namespaces containers restrict. Only root can run nix afterwards.
         curl -fsSL "$installer" | sh -s -- install linux \
             --init none \
             --extra-conf "sandbox = false" \
@@ -105,16 +103,13 @@ install_nix() {
         curl -fsSL "$installer" | sh -s -- install --determinate --no-confirm
     fi
 
-    set +u
-    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-    set -u
+    load_nix
 }
 
+# The flake sees the build platform, not the distro, so this is the only
+# place that can keep GUI apps off headless machines.
 switch_profile() {
     local target="$1"
-    # This is the only place that can decide whether GUI apps belong on a
-    # machine: the flake sees the build platform, not the distro, so
-    # `profile` would happily install linuxDesktopPackages on a devbox.
     case "$target" in
     devcontainer) nix run .#profile-container.switch ;;
     debian) nix run .#profile-headless.switch ;;
@@ -124,22 +119,24 @@ switch_profile() {
 
 setup_shell() {
     local target="$1"
-    # No meaningful login shell to change in a container, and often no sudo.
-    [[ "$target" == "devcontainer" ]] && return
+    if [[ "$target" == "devcontainer" ]]; then
+        return
+    fi
 
     local fish_path
     fish_path="$(command -v fish)"
     grep -qxF "$fish_path" /etc/shells || echo "$fish_path" | $SUDO tee -a /etc/shells >/dev/null
+
+    if [[ "$(getent passwd "$USER" | cut -d: -f7)" == "$fish_path" ]]; then
+        return
+    fi
     $SUDO chsh -s "$fish_path" "$USER"
 }
 
 stow_package() {
     local pkg="$1" simulated
-    # Simulate first. stow refuses to overwrite files it does not own, and
-    # a half-applied run is worse than none - so report the conflicts and
-    # stop rather than touching anything. Never delete a live config file
-    # to make room: it may be the only copy, and nothing has replaced it
-    # yet at that point.
+    # A half-applied run is worse than none, and a live config file may be
+    # the only copy.
     if ! simulated="$(stow --target ~/ --no --verbose=1 "$pkg" 2>&1)"; then
         echo "install.sh: stow would conflict for package '$pkg':" >&2
         echo "$simulated" >&2
@@ -160,7 +157,26 @@ stow_dotfiles() {
 }
 
 setup_nvim() {
-    nvim --headless "+Lazy! sync" +qa
+    # Bootstrap only; upgrade.sh updates them.
+    local lazy_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/lazy"
+    if [[ -d "$lazy_dir" ]] && [[ -n "$(ls -A "$lazy_dir" 2>/dev/null)" ]]; then
+        return
+    fi
+    # restore, not sync: the versions pinned in lazy-lock.json.
+    nvim --headless "+Lazy! restore" +qa
+}
+
+setup_fonts() {
+    local target="$1"
+    case "$target" in
+    fedora-silverblue | fedora) ;;
+    *) return ;;
+    esac
+
+    if fc-list 2>/dev/null | grep -qi jetbrainsmono; then
+        return
+    fi
+    fc-cache -f
 }
 
 main() {
@@ -174,15 +190,10 @@ main() {
     setup_shell "$target"
     stow_dotfiles "$target"
     setup_nvim
-
-    # Rebuild the font cache for the stowed .fonts, on the targets that
-    # actually render them locally.
-    # NB: keep this an if-statement rather than a `[[ ]] && cmd` one-liner:
-    # as the last command in the function the latter returns 1 when the
-    # test is false, which `set -e` turns into a spurious failed run.
-    if [[ "$target" == "fedora-silverblue" || "$target" == "fedora" ]]; then
-        fc-cache -fv
-    fi
+    setup_fonts "$target"
 }
 
-main
+# Only run when executed; upgrade.sh sources this for the helpers.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main
+fi
