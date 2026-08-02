@@ -1,0 +1,16 @@
+# Hooks run via prek, which install.sh installs from the same flake as
+# every other tool here.
+repos:
+  - repo: local
+    hooks:
+      # A local/system hook, not a pinned upstream one: nixfmt is already
+      # pinned in flake.lock, and the whole point is that the commit hook
+      # and `nixfmt` run by hand cannot disagree about the style. An
+      # upstream hook would pin a second, independent version.
+      - id: nixfmt
+        name: nixfmt
+        entry: nixfmt
+        language: system
+        types: [nix]
+        # nixfmt rewrites in place; prek fails the commit when a file
+        # changed, so re-stage and commit again.

@@ -6,5 +6,6 @@ install.sh
 upgrade.sh
 flake.nix
 flake.lock
+.pre-commit-config.yaml
 
 .git

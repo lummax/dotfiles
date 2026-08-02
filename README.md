@@ -55,6 +55,12 @@ Notes
   config: it simulates each stow pass and stops with a list of conflicts to
   move aside yourself.
 - The Determinate Systems installer is the only script piped into a shell.
+- `prek` runs `nixfmt` on commit. `install.sh` installs the hook, since
+  `.git/hooks` is not tracked; `prek run --all-files` checks everything by
+  hand. The hook is a `local`/`system` one so it uses the `nixfmt` pinned in
+  `flake.lock` rather than a second version pinned by `rev` — the cost is
+  that it needs the Nix profile on `PATH`, so committing from a GUI client
+  that does not source it will fail to find `nixfmt`.
 - `cosmic/` tracks only the keyboard layout and custom shortcuts. Theming
   and wallpaper stay with COSMIC's own settings daemon.
 - fish plugins come from nixpkgs, not fisher. `fish_variables` is runtime
