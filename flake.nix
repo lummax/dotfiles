@@ -5,15 +5,23 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, flakey-profile }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      flakey-profile,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
           # Named rather than a blanket allowUnfree. These are what
           # lib.getName returns, not attribute names: vscode-fhs wraps a
           # buildFHSEnv whose pname is the executable, "code".
-          config.allowUnfreePredicate = pkg:
+          config.allowUnfreePredicate =
+            pkg:
             builtins.elem (nixpkgs.lib.getName pkg) [
               "code"
               "vscode"
@@ -83,12 +91,18 @@
         linuxDesktopPackages = with pkgs; [
           vscode-fhs
         ];
-      in {
+      in
+      {
         # Desktops (macOS, Fedora). The only profile with GUI apps.
         packages.profile = flakey-profile.lib.mkProfile {
           inherit pkgs;
-          pinned = { nixpkgs = toString nixpkgs; };
-          paths = basePackages ++ hostPackages ++ guiPackages
+          pinned = {
+            nixpkgs = toString nixpkgs;
+          };
+          paths =
+            basePackages
+            ++ hostPackages
+            ++ guiPackages
             ++ lib.optionals pkgs.stdenv.isDarwin darwinPackages
             ++ lib.optionals pkgs.stdenv.isLinux linuxDesktopPackages;
         };
@@ -96,15 +110,20 @@
         # ubuntu/debian devboxes: host tools, nothing graphical.
         packages.profile-headless = flakey-profile.lib.mkProfile {
           inherit pkgs;
-          pinned = { nixpkgs = toString nixpkgs; };
+          pinned = {
+            nixpkgs = toString nixpkgs;
+          };
           paths = basePackages ++ hostPackages;
         };
 
         # devcontainers: base CLI only, run daemonless.
         packages.profile-container = flakey-profile.lib.mkProfile {
           inherit pkgs;
-          pinned = { nixpkgs = toString nixpkgs; };
+          pinned = {
+            nixpkgs = toString nixpkgs;
+          };
           paths = basePackages;
         };
-      });
+      }
+    );
 }
