@@ -4,6 +4,7 @@
     "workbench.iconTheme": "catppuccin-macchiato",
     "vim.leader": " ",
     "vim.vimrc.enable": true,
+    "vim.vimrc.path": "~/.vscodevimrc",
     "vim.visualstar": true,
     "files.autoSave": "onFocusChange",
     "editor.fontSize": 13,
@@ -24,9 +25,8 @@
       "devbox": "linux"
     },
     "bazel.enableCodeLens": true,
-    "cursorpyright.shouldImportPylanceSettings": "never",
     "remote.autoForwardPortsSource": "hybrid",
     "terminal.integrated.fontSize": 15,
     "workbench.colorTheme": "Catppuccin Macchiato",
-    //"dotfiles.repository": "https://github.com/lukasoyen/dotfiles.git",
+    //"dotfiles.repository": "https://github.com/lummax/dotfiles.git",
 }

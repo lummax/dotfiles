@@ -1,13 +1,9 @@
 README.md
-packages.txt
-bundles
 macos
+cosmic
 
 install.sh
 flake.nix
 flake.lock
 
 .git
-.gitmodules
-flake.lock
-flake.nix

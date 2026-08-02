@@ -35,7 +35,6 @@ yabai -m config \
 
 yabai -m rule --add 'app=^IntelliJ IDEA$' space=code
 yabai -m rule --add 'app=^Code$' space=code
-yabai -m rule --add 'app=^Cursor$' space=code
 
 yabai -m rule --add 'app=^Obsidian$' space=org
 yabai -m rule --add 'title=.* notes$' space=org

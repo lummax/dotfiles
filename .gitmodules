@@ -1,3 +1,0 @@
-[submodule "bundles/tpm"]
-	path = bundles/tpm
-	url = https://github.com/tmux-plugins/tpm

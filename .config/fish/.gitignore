@@ -1,0 +1,4 @@
+# Runtime state: fish rewrites this on every universal-variable change, and
+# ~/.config/fish is a stow symlink into this repo, so the writes land here.
+# Everything worth reproducing lives in config.fish instead.
+fish_variables

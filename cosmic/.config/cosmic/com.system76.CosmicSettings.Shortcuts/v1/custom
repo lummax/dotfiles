@@ -1,0 +1,54 @@
+{
+    // Ported from macos/.config/skhd/skhdrc (yabai named-space navigation).
+    //
+    // COSMIC's Shortcuts Action enum only targets workspaces by number
+    // (Workspace(N) / MoveToWorkspace(N)), there is no named-workspace
+    // equivalent to yabai's `--space org` labels. Numbers below preserve
+    // the original letter mnemonics, just applied to a fixed slot instead
+    // of a name:
+    //   1=org 2=code 3=terminal 4=misc 5=web 6=mail 7=calendar 8=chat
+    //
+    // Bound on bare Super, matching the original `cmd -` bindings. This
+    // intentionally overrides COSMIC's defaults for Super+{u,i,a,r,t}
+    // (Focus Out/In, Resizing Outwards, AppLibrary, Terminal) - an entry
+    // here for the same (modifiers, key) replaces the default, no need
+    // for an explicit `Disable` entry first.
+    //
+    // The displaced defaults are deliberately left unbound rather than
+    // rehomed: Super and Super+slash still open System(Launcher), which
+    // covers what AppLibrary did, and resizing is available by mouse or
+    // via the tiling toggles. Terminal is re-bound to Ctrl+Return below.
+    (modifiers: [Super], key: "u"): Workspace(1),
+    (modifiers: [Super], key: "i"): Workspace(2),
+    (modifiers: [Super], key: "a"): Workspace(3),
+    (modifiers: [Super], key: "e"): Workspace(4),
+    (modifiers: [Super], key: "n"): Workspace(5),
+    (modifiers: [Super], key: "r"): Workspace(6),
+    (modifiers: [Super], key: "t"): Workspace(7),
+    (modifiers: [Super], key: "d"): Workspace(8),
+
+    // NOTE: yabai's `cmd+shift - u` did two things (`--space org` then
+    // `--focus org`) so the window's move was always followed by your
+    // focus. cosmic-comp has no scriptable IPC to chain actions like
+    // that, and it's untested whether MoveToWorkspace(N) below follows
+    // focus to the target workspace on its own - verify after applying.
+    // Super+Shift+r also overrides the default Resizing(Inwards).
+    (modifiers: [Super, Shift], key: "u"): MoveToWorkspace(1),
+    (modifiers: [Super, Shift], key: "i"): MoveToWorkspace(2),
+    (modifiers: [Super, Shift], key: "a"): MoveToWorkspace(3),
+    (modifiers: [Super, Shift], key: "e"): MoveToWorkspace(4),
+    (modifiers: [Super, Shift], key: "n"): MoveToWorkspace(5),
+    (modifiers: [Super, Shift], key: "r"): MoveToWorkspace(6),
+    (modifiers: [Super, Shift], key: "t"): MoveToWorkspace(7),
+    (modifiers: [Super, Shift], key: "d"): MoveToWorkspace(8),
+
+    // cmd - left/right (focus west/east) and cmd+shift - left/right (swap)
+    // need no entry here: COSMIC's defaults already bind
+    // Super+Left/Right to Focus(Left/Right) and Super+Shift+Left/Right to
+    // Move(Left/Right), which is the same behavior yabai's `--focus`/
+    // `--swap west/east` gave you.
+
+    // ctrl - return: ~/.nix-profile/bin/iterm2 -> launch a terminal.
+    // cosmic-term confirmed present on PATH on this machine.
+    (modifiers: [Ctrl], key: "Return"): Spawn("cosmic-term"),
+}
