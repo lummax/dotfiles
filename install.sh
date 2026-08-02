@@ -146,13 +146,34 @@ stow_package() {
     stow --target ~/ "$pkg"
 }
 
+# COSMIC saves settings atomically (temp file + rename), which replaces a
+# per-file symlink rather than writing through it - the change then lands
+# outside this repo, silently. Folding ~/.config/cosmic into one directory
+# symlink keeps those writes inside the repo, where they show up as a diff.
+#
+# Stow only folds when nothing exists at the target, but COSMIC recreates
+# empty component directories on login, so clear them first. Only ever when
+# they hold no regular files, and by rename, since COSMIC races a recursive
+# delete by recreating directories underneath it.
+fold_cosmic_dir() {
+    local dir=~/.config/cosmic
+    [[ -d "$dir" && ! -L "$dir" ]] || return 0
+    [[ -z "$(find "$dir" -type f -print -quit 2>/dev/null)" ]] || return 0
+
+    local aside="$dir.pre-stow.$$"
+    mv "$dir" "$aside" && rm -rf "$aside"
+}
+
 stow_dotfiles() {
     local target="$1"
     mkdir -p ~/.config
     stow_package .
     case "$target" in
     darwin) stow_package macos ;;
-    fedora-silverblue) stow_package cosmic ;;
+    fedora-silverblue)
+        fold_cosmic_dir
+        stow_package cosmic
+        ;;
     esac
 }
 
