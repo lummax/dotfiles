@@ -28,5 +28,6 @@
     "remote.autoForwardPortsSource": "hybrid",
     "terminal.integrated.fontSize": 15,
     "workbench.colorTheme": "Catppuccin Mocha",
+    "claudeCode.preferredLocation": "panel",
     //"dotfiles.repository": "https://github.com/lummax/dotfiles.git",
 }
