@@ -77,6 +77,10 @@
           # CLI, but it configures a key plugged into this machine, so it
           # belongs with the desktops rather than in basePackages.
           yubikey-manager
+          # ssh-agent has no tty to ask for the YubiKey's PIN on, so
+          # verify-required keys need an askpass helper. Qt rather than the
+          # X11 one: this asks under a Wayland session.
+          lxqt.lxqt-openssh-askpass
         ];
 
         darwinPackages = with pkgs; [

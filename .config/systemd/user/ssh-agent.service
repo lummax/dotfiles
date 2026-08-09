@@ -1,0 +1,28 @@
+[Unit]
+Description=OpenSSH agent
+Documentation=man:ssh-agent(1)
+# SSH_ASKPASS below is a GUI program, and a service inherits the manager's
+# environment as it stands when it starts. From default.target that is
+# before the compositor has exported WAYLAND_DISPLAY, so the helper cannot
+# open a window, exits non-zero, and every signature fails as "agent refused
+# operation" - the same message gnome-keyring gives, for a different reason.
+# PartOf so a logout takes the agent with it; the keys it held have to be
+# reloaded with `ssh-add -K` on the next login regardless.
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
+# The YubiKey's keys are verify-required, and an agent has no tty to ask for
+# the PIN on, so it needs an askpass helper or it refuses to sign. Set here
+# rather than in the environment at large, so that plain interactive ssh
+# keeps prompting on the terminal. The helper comes from guiPackages.
+Environment=SSH_ASKPASS=%h/.nix-profile/bin/lxqt-openssh-askpass
+Environment=SSH_ASKPASS_REQUIRE=prefer
+# /usr/bin, not the profile: openssh is not one of the flake's packages.
+ExecStart=/usr/bin/ssh-agent -D -a $SSH_AUTH_SOCK
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

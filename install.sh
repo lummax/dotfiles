@@ -177,6 +177,28 @@ stow_dotfiles() {
     esac
 }
 
+# environment.d points SSH_AUTH_SOCK at this unit on every target that
+# reads it, so every such target has to actually run it. On the desktop it
+# also replaces gnome-keyring's ssh component, which cannot sign for the
+# YubiKey's FIDO2 keys and which cosmic/ switches off. Stow only puts the
+# unit in place; enabling is what links it into default.target.wants, so
+# this has to follow stow_dotfiles.
+setup_ssh_agent() {
+    local target="$1"
+    case "$target" in
+    fedora-silverblue | fedora) ;;
+    # Only desktops. darwin has no systemd, devcontainers install nix with
+    # --init none, and a devbox is reached over ssh, where config.fish
+    # leaves the forwarded agent alone - a local one would go unused.
+    *) return ;;
+    esac
+
+    # The unit arrived as a new stow symlink, so it is not in the cached
+    # tree yet. `enable` is idempotent, so it needs no guard of its own.
+    systemctl --user daemon-reload
+    systemctl --user enable ssh-agent.service
+}
+
 setup_nvim() {
     # Bootstrap only; upgrade.sh updates them.
     local lazy_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/lazy"
@@ -240,6 +262,7 @@ main() {
     switch_profile "$target"
     setup_shell "$target"
     stow_dotfiles "$target"
+    setup_ssh_agent "$target"
     setup_nvim
     setup_vscode
     setup_fonts "$target"

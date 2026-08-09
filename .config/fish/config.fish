@@ -53,6 +53,16 @@ fish_add_path ~/.nix-profile/bin/
 fish_add_path --append /nix/var/nix/profiles/default/bin
 set -gx NIX_PROFILES "/nix/var/nix/profiles/default $HOME/.nix-profile"
 
+# Point at ssh-agent.service. Here rather than in environment.d, because
+# gnome-keyring claims SSH_AUTH_SOCK at runtime and a value set that late
+# outranks environment.d - and its agent cannot sign for the YubiKey's FIDO2
+# (sk-*) keys. Guarded twice: no socket means no agent of ours to point at,
+# and SSH_CONNECTION means this shell is on the far end of a forwarded agent
+# that should be left alone.
+if test -S $XDG_RUNTIME_DIR/ssh-agent.socket; and not set -q SSH_CONNECTION
+    set -gx SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
+end
+
 direnv hook fish | source
 zoxide init fish --cmd cd | source
 if status is-interactive

@@ -63,6 +63,20 @@ Notes
   that does not source it will fail to find `nixfmt`.
 - `cosmic/` tracks only the keyboard layout and custom shortcuts. Theming
   and wallpaper stay with COSMIC's own settings daemon.
+- `ssh-agent.service` replaces gnome-keyring's agent on the desktops, which
+  cannot sign for the YubiKey's FIDO2 (`sk-*`) keys — it answers "agent
+  refused operation". `config.fish` is what points `SSH_AUTH_SOCK` at it,
+  and it has to be the shell rather than `environment.d`, because
+  gnome-keyring claims the variable at runtime and a value set that late
+  wins. Hiding the keyring's autostart entry does not stop it under COSMIC
+  either. The unit hangs off `graphical-session.target` rather than
+  `default.target` so it starts late enough to have a display to put the
+  askpass prompt on. Not installed on devboxes: they are reached over ssh,
+  where `config.fish` leaves the forwarded agent alone.
+- `~/.ssh/config` is not tracked and deliberately sets no `IdentityFile`:
+  naming both YubiKeys costs a PIN prompt and a touch on the wrong one
+  before it fails. `ssh-add -K` loads the resident keys off whichever token
+  is plugged in, and the agent then offers only that one.
 - fish plugins come from nixpkgs, not fisher. `fish_variables` is runtime
   state and is gitignored, so keep anything worth having in `config.fish`.
 - Devcontainers install Nix with `--init none` (no systemd), so only root or

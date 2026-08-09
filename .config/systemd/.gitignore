@@ -1,0 +1,4 @@
+# ~/.config/systemd is a folded stow symlink into this repo, so the links
+# `systemctl --user enable` writes land in here. That is runtime state, and
+# install.sh recreates it via setup_ssh_agent on a fresh machine.
+user/*.wants/
