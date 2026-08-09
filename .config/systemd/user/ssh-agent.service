@@ -20,10 +20,11 @@ Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
 # keeps prompting on the terminal. The helper comes from guiPackages.
 Environment=SSH_ASKPASS=%h/.nix-profile/libexec/gtk-ssh-askpass
 Environment=SSH_ASKPASS_REQUIRE=prefer
-# Catppuccin Mocha base and text. The dialog is a bare GtkMessageDialog and
-# picks up little from the GTK theme on its own, but it reads these.
-Environment=GNOME_SSH_ASKPASS_BG_COLOR=#1e1e2e
-Environment=GNOME_SSH_ASKPASS_FG_COLOR=#cdd6f4
+# GNOME_SSH_ASKPASS_{BG,FG}_COLOR would repaint the body and leave the
+# titlebar and buttons stock Adwaita light. A theme covers the whole window
+# instead; cosmic/ ships it, and GTK falls back to its default where it is
+# absent, so this is inert on a host without that package.
+Environment=GTK_THEME=cosmic-mocha
 # /usr/bin, not the profile: openssh is not one of the flake's packages.
 ExecStart=/usr/bin/ssh-agent -D -a $SSH_AUTH_SOCK
 Restart=on-failure

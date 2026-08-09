@@ -1,0 +1,40 @@
+/* COSMIC generates ~/.config/gtk-4.0/cosmic/dark.css and links gtk-3.0's
+ * stylesheet at it, but that file only defines the GTK4/libadwaita colour
+ * names - window_bg_color, headerbar_bg_color, dialog_bg_color - and no
+ * selectors at all. GTK3's Adwaita reads theme_bg_color and friends, so a
+ * GTK3 window picks up none of it and renders as stock light Adwaita.
+ *
+ * Catppuccin Mocha proper, the same hexes as the fish colours in
+ * config.fish - not the values from that generated file. COSMIC is told
+ * Mocha's base, accent and destructive and derives the rest, which lands
+ * near the palette but not on it: its foreground comes out #e8eeff where
+ * Mocha's text is #cdd6f4.
+ *
+ * Only selected by GTK_THEME in ssh-agent.service, so this restyles the
+ * askpass dialog and nothing else. */
+
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained-dark.css");
+
+/* base, text, surface0, mauve */
+@define-color theme_bg_color #1e1e2e;
+@define-color theme_fg_color #cdd6f4;
+@define-color theme_base_color #313244;
+@define-color theme_text_color #cdd6f4;
+@define-color theme_selected_bg_color #cba6f7;
+@define-color theme_selected_fg_color #1e1e2e;
+
+/* overlay0 for disabled text, surface1 for borders */
+@define-color insensitive_bg_color #1e1e2e;
+@define-color insensitive_fg_color #6c7086;
+@define-color borders #45475a;
+
+@define-color theme_unfocused_bg_color #1e1e2e;
+@define-color theme_unfocused_fg_color #cdd6f4;
+@define-color theme_unfocused_base_color #313244;
+@define-color theme_unfocused_text_color #cdd6f4;
+@define-color unfocused_borders #45475a;
+
+/* red, for the destructive/error styling Adwaita pulls from these */
+@define-color error_color #f38ba8;
+@define-color warning_color #f9e2af;
+@define-color success_color #a6e3a1;
