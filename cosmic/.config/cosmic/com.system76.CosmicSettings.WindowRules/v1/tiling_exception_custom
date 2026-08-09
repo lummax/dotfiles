@@ -1,0 +1,7 @@
+[
+    (
+        enabled: true,
+        appid: "gtk-ssh-askpass",
+        title: "OpenSSH",
+    ),
+]

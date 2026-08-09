@@ -78,9 +78,10 @@
           # belongs with the desktops rather than in basePackages.
           yubikey-manager
           # ssh-agent has no tty to ask for the YubiKey's PIN on, so
-          # verify-required keys need an askpass helper. Qt rather than the
-          # X11 one: this asks under a Wayland session.
-          lxqt.lxqt-openssh-askpass
+          # verify-required keys need an askpass helper. The GTK one, since
+          # it follows the GTK theme COSMIC exports and takes its colours
+          # from the environment; the Qt and Athena ones look foreign.
+          openssh-askpass
         ];
 
         darwinPackages = with pkgs; [

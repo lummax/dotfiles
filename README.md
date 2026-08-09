@@ -72,7 +72,9 @@ Notes
   either. The unit hangs off `graphical-session.target` rather than
   `default.target` so it starts late enough to have a display to put the
   askpass prompt on. Not installed on devboxes: they are reached over ssh,
-  where `config.fish` leaves the forwarded agent alone.
+  where `config.fish` leaves the forwarded agent alone. The prompt is a
+  one-off GTK dialog, so `cosmic/` carries a tiling exception to keep
+  autotiling from swallowing it.
 - `~/.ssh/config` is not tracked and deliberately sets no `IdentityFile`:
   naming both YubiKeys costs a PIN prompt and a touch on the wrong one
   before it fails. `ssh-add -K` loads the resident keys off whichever token
