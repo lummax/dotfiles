@@ -29,5 +29,6 @@
     "terminal.integrated.fontSize": 15,
     "workbench.colorTheme": "Catppuccin Mocha",
     "claudeCode.preferredLocation": "panel",
+    "dev.containers.dockerPath": "/usr/bin/podman",
     //"dotfiles.repository": "https://github.com/lummax/dotfiles.git",
 }

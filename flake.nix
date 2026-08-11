@@ -17,13 +17,11 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          # Named rather than a blanket allowUnfree. These are what
-          # lib.getName returns, not attribute names: vscode-fhs wraps a
-          # buildFHSEnv whose pname is the executable, "code".
+          # Named rather than a blanket allowUnfree. This is what
+          # lib.getName returns, not the attribute name.
           config.allowUnfreePredicate =
             pkg:
             builtins.elem (nixpkgs.lib.getName pkg) [
-              "code"
               "vscode"
             ];
         };
@@ -94,10 +92,16 @@
           karabiner-elements
         ];
 
-        # fhs, not plain vscode: this is not NixOS, and the Remote-SSH and
-        # Dev Containers extensions ship binaries wanting an FHS layout.
+        # Plain vscode, not vscode-fhs. The FHS wrapper is for NixOS, which
+        # has no /lib64 loader for the prebuilt binaries the Remote-SSH and
+        # Dev Containers extensions ship; Fedora has one, so the wrapper buys
+        # nothing and costs the container workflow. It runs the editor under
+        # bubblewrap with the FHS rootfs as /usr, so the Dev Containers
+        # extension sees no /usr/bin/podman and cannot reach the host one
+        # (missing libgpgme), and the chroot's single-UID map puts the subuid
+        # range that --userns=keep-id needs out of reach.
         linuxDesktopPackages = with pkgs; [
-          vscode-fhs
+          vscode
         ];
       in
       {
